@@ -73,7 +73,51 @@ if __name__ == '__main__':
 ######################################################################################
 #  Filter all 2-paralog gene families that both show up in all_ENS
 ######################################################################################
-    select_pair = [group_id_to_ENS[group_id] for group_id in group_id_to_ENS if all([(ENS in all_ENS) for ENS in group_id_to_ENS[group_id]])]
+    remove_group_id = [group_id for group_id in group_id_to_ENS if not all([(ENS in all_ENS) for ENS in group_id_to_ENS[group_id]])]
+    for group_id in remove_group_id:
+        del group_id_to_ENS[group_id]
+
+######################################################################################
+#  Output a list of less accurate gene families first
+######################################################################################
+    GeneFamily_Folder = './GeneFamilies/'
+    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo']
+    with open('./GeneFamilyList_LessAccurate.txt', 'w+') as f:
+        for group_id in group_id_to_ENS:
+            ENS_1, ENS_2 = group_id_to_ENS[group_id]
+            paralog1 = ENS_to_name[ENS_1]
+            paralog2 = ENS_to_name[ENS_2]
+            f.write(paralog1 + '_' + paralog2 + '\n')
+            with open(GeneFamily_Folder + paralog1 + '_' + paralog2 + '.fasta', 'w+') as g:
+                #f.write(paralog1 + '_' + paralog2 + '\n')
+                with open('./OrthoMaMv9_align/' + ENS_to_FastaFile[ENS_1], 'rb') as fasta_file:
+                    species_to_fasta = dict()
+                    to_write = False
+                    for line in fasta_file:
+                        if line[0] == '>':
+                            species = line.split()[0][1:]
+                        else:
+                            sequence = line.split()[0]
+                            species_to_fasta[species] = sequence
+
+                for species in ENS_fasta_species_list:
+                    g.write('>' + species + '_' + paralog1 + '\n')
+                    g.write(species_to_fasta[species] + '\n')
+
+            
+                with open('./OrthoMaMv9_align/' + ENS_to_FastaFile[ENS_2], 'rb') as fasta_file:
+                    species_to_fasta = dict()
+                    to_write = False
+                    for line in fasta_file:
+                        if line[0] == '>':
+                            species = line.split()[0][1:]
+                        else:
+                            sequence = line.split()[0]
+                            species_to_fasta[species] = sequence
+
+                for species in ENS_fasta_species_list:
+                    g.write('>' + species + '_' + paralog2 + '\n')
+                    g.write(species_to_fasta[species] + '\n')
 
 
 ######################################################################################
@@ -185,6 +229,7 @@ if __name__ == '__main__':
     ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo']
     with open('./GeneFamilyList.txt', 'w+') as f:    
         for group_id in selected_group_id_list:
+            print group_id
             ENS_1 = group_id_to_ENS[group_id][0]
             ENS_2 = group_id_to_ENS[group_id][1]
             paralog1 = ENS_to_name[ENS_1]
