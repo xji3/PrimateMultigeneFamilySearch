@@ -1,8 +1,24 @@
-import urllib2, gzip, os, json
+import urllib2, gzip, os, json, pickle
 from Bio import SeqIO
+
+#### http://rest.ensembl.org/documentation/info/sequence_id
+import requests, sys
 
 #### http://pycogent.org/examples/query_ensembl.html
 #from cogent.db.ensembl import HostAccount, Genome
+
+
+def getENSsequence(ENS_id, seq_type = 'CDS'):
+    server = "http://rest.ensembl.org"
+    ext = "/sequence/id/" + ENS_id + '?type=' + seq_type
+    r = requests.get(server+ext, headers={ "Content-Type" : "text/plain"})
+     
+    if not r.ok:
+      r.raise_for_status()
+      sys.exit()
+    return r.text
+
+
 
 if __name__ == '__main__':
 ##    species_to_taxid = {'Human':9606, 'Chimpanzee':9598,
@@ -110,7 +126,55 @@ if __name__ == '__main__':
     #######
 
     selected_group_id_list = [group_id for group_id in group_id_to_ENS if all([(ENS_to_metaPhor[ENS] in selected_metaPhor_id) if ENS in ENS_to_metaPhor.keys() else False for ENS in group_id_to_ENS[group_id] ])]
+
+######################################################################################
+#  Now get meta_id of other species and then link back to ENS id
+######################################################################################
+
+    if not os.path.isfile('./Homo_meta_id_to_others.p'):
+        target_species_list = [u'Homo sapiens', u'Pan troglodytes', u'Gorilla gorilla', u'Pongo abelii', u'Macaca mulatta']
+        Homo_meta_id_to_others = dict()
+        for meta_id in selected_metaPhor_id:
+            print 'Query metaPhors id: ', meta_id
+            Homo_meta_id_to_others[meta_id] = dict()
+            website_query = "http://betaorthology.phylomedb.org/wsgi/query/getGenes?term=" + ENS_to_name[metaPhor_to_ENS[meta_id]]
+            ### This method does not work for all genes, but some of them
+            handle = urllib2.urlopen(website_query)
+            species_to_metaid = json.loads(handle.readline())
+            for item in species_to_metaid:
+                species = item[u'species']
+                if species in target_species_list:
+                    Homo_meta_id_to_others[meta_id][str(species)] = str(item[u'metaid'])
+        pickle.dump( Homo_meta_id_to_others, open('./Homo_meta_id_to_others.p', 'w+'))
+    else:
+        Homo_meta_id_to_others = pickle.load(open('./Homo_meta_id_to_others.p', 'rb'))
     
+    metaphor_id_file = '/Users/Xiang/Downloads/id_conversion.txt.gz'
+    ENS_to_metaPhor_file = './ENS_to_metaPhor.txt'
+    new_meta_id = [Homo_meta_id_to_others[meta_id][species] for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']
+                   for meta_id in Homo_meta_id_to_others.keys()]
+    meta_to_TrEMBL = dict()
+    meta_to_TrEMBL_file = './meta_to_TrEMBL.txt'
+    if not os.path.isfile(meta_to_TrEMBL_file):        
+        with gzip.open(metaphor_id_file, 'rb') as f:
+            f.readline()
+            for line in f:
+                content = line.split()
+                if content[2] in new_meta_id:
+                    print content[2]
+                    meta_to_TrEMBL[content[2]] = content[0]
+    else:
+        meta_to_TrEMBL = pickle.load(open(meta_to_TrEMBL_file, 'rb'))
+
+    TrEMBL_to_Ensembl_file = './TrEMBL_to_Ensembl_mapping.txt'
+    ### http://www.uniprot.org/mapping/
+    TrEMBL_to_Ensembl = dict()
+    with open(TrEMBL_to_Ensembl_file, 'rb') as f:
+        f.readline()
+        for line in f:
+            content = line.split()
+            TrEMBL_to_Ensembl[content[0]] = content[1]
+
 
 ######################################################################################
 #  Now construct fasta files
@@ -125,7 +189,89 @@ if __name__ == '__main__':
             ENS_2 = group_id_to_ENS[group_id][1]
             paralog1 = ENS_to_name[ENS_1]
             paralog2 = ENS_to_name[ENS_2]
+            meta_id_1 = ENS_to_metaPhor[ENS_1]
+            meta_id_2 = ENS_to_metaPhor[ENS_2]
+            
             f.write(paralog1 + '_' + paralog2 + '\n')
+                
+            if ENS_1 in ENS_to_FastaFile and ENS_2 in ENS_to_FastaFile:
+                with open(GeneFamily_Folder + paralog1 + '_' + paralog2 + '.fasta', 'w+') as g:
+                    #f.write(paralog1 + '_' + paralog2 + '\n')
+                    with open('./OrthoMaMv9_align/' + ENS_to_FastaFile[ENS_1], 'rb') as fasta_file:
+                        species_to_fasta = dict()
+                        to_write = False
+                        for line in fasta_file:
+                            if line[0] == '>':
+                                species = line.split()[0][1:]
+                            else:
+                                sequence = line.split()[0]
+                                species_to_fasta[species] = sequence
+
+                    for species in ENS_fasta_species_list:
+                        g.write('>' + species + '_' + paralog1 + '\n')
+                        g.write(species_to_fasta[species] + '\n')
+
+                
+                    with open('./OrthoMaMv9_align/' + ENS_to_FastaFile[ENS_2], 'rb') as fasta_file:
+                        species_to_fasta = dict()
+                        to_write = False
+                        for line in fasta_file:
+                            if line[0] == '>':
+                                species = line.split()[0][1:]
+                            else:
+                                sequence = line.split()[0]
+                                species_to_fasta[species] = sequence
+
+                    for species in ENS_fasta_species_list:
+                        g.write('>' + species + '_' + paralog2 + '\n')
+                        g.write(species_to_fasta[species] + '\n')
+
+                    continue
+
+            else:
+                print ENS_1, ENS_2
+                with open('./manual/'  + paralog1 + '_' + paralog2 + '_info.txt', 'w+') as h:
+                    h.write('\t'.join(['Species', 'Gene', 'TrEMBL id', 'metaPhors id',  'Ensembl id', '\n']))
+                    for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']:  # Homo_meta_id_to_others[Homo_meta_id_to_others.keys()[0]].keys()
+                        for ENS_id in [ENS_1, ENS_2]:
+                            meta_id = ENS_to_metaPhor[ENS_id]
+                            paralog = ENS_to_name[ENS_id]
+                            species_meta_id = Homo_meta_id_to_others[meta_id][species]
+                            species_TrEMBL_id = meta_to_TrEMBL[species_meta_id]
+                            species_ENS_id = TrEMBL_to_Ensembl[species_TrEMBL_id]
+
+                            h.write('\t'.join([species, paralog, species_TrEMBL_id, species_meta_id, species_ENS_id, '\n']))
+##                    with open(GeneFamily_Folder + paralog1 + '_' + paralog2 + '.fasta', 'w+') as g:
+##                        for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']:
+##                            g.write('>' + species.split()[0] + '_' + paralog1 + '\n')
+##                            g.write('\n')
+##                        for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']:
+##                            g.write('>' + species.split()[0] + '_' + paralog2 + '\n')
+##                            g.write('\n')
+
+                    
+##                if meta_id_1 in Homo_meta_id_to_others and meta_id_2 in Homo_meta_id_to_others:
+##                    f.write(paralog1 + '_' + paralog2 + '\n')
+##                    print group_id
+##                    for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']:  # Homo_meta_id_to_others[Homo_meta_id_to_others.keys()[0]].keys()
+##                        species_meta_id = Homo_meta_id_to_others[meta_id_1][species]
+##                        species_TrEMBL_id = meta_to_TrEMBL[species_meta_id]
+##                        species_ENS_id = TrEMBL_to_Ensembl[species_TrEMBL_id]
+##                        
+##                        g.write('>' + species.split()[0] + '_' + paralog1 + '\n')
+##                        g.write(getENSsequence(species_ENS_id) + '\n')
+##
+##
+##                    for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']:  # Homo_meta_id_to_others[Homo_meta_id_to_others.keys()[0]].keys()
+##                        species_meta_id = Homo_meta_id_to_others[meta_id_2][species]
+##                        species_TrEMBL_id = meta_to_TrEMBL[species_meta_id]
+##                        species_ENS_id = TrEMBL_to_Ensembl[species_TrEMBL_id]
+##                        
+##                        g.write('>' + species.split()[0] + '_' + paralog1 + '\n')
+##                        g.write(getENSsequence(species_ENS_id) + '\n')
+##
+                
+
 ##            if ENS_1 in ENS_to_FastaFile and ENS_2 in ENS_to_FastaFile:
 ##                f.write(paralog1 + '_' + paralog2 + '\n')
 ##                
@@ -158,4 +304,4 @@ if __name__ == '__main__':
 ##                    for species in ENS_fasta_species_list:
 ##                        g.write('>' + species + '_' + paralog2 + '\n')
 ##                        g.write(species_to_fasta[species] + '\n')
-##                
+##   
