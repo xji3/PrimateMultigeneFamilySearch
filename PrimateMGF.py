@@ -273,19 +273,22 @@ if __name__ == '__main__':
 
                     continue
 
-            else:
-                print ENS_1, ENS_2
-                with open('./manual/'  + paralog1 + '_' + paralog2 + '_info.txt', 'w+') as h:
-                    h.write('\t'.join(['Species', 'Gene', 'TrEMBL id', 'metaPhors id',  'Ensembl id', '\n']))
-                    for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']:  # Homo_meta_id_to_others[Homo_meta_id_to_others.keys()[0]].keys()
-                        for ENS_id in [ENS_1, ENS_2]:
-                            meta_id = ENS_to_metaPhor[ENS_id]
-                            paralog = ENS_to_name[ENS_id]
-                            species_meta_id = Homo_meta_id_to_others[meta_id][species]
-                            species_TrEMBL_id = meta_to_TrEMBL[species_meta_id]
-                            species_ENS_id = TrEMBL_to_Ensembl[species_TrEMBL_id]
+##            else:
+##                print ENS_1, ENS_2
+##                with open('./manual/'  + paralog1 + '_' + paralog2 + '_info.txt', 'w+') as h:
+##                    h.write('\t'.join(['Species', 'Gene', 'TrEMBL id', 'metaPhors id',  'Ensembl id', '\n']))
+##                    for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']:  # Homo_meta_id_to_others[Homo_meta_id_to_others.keys()[0]].keys()
+##                        for ENS_id in [ENS_1, ENS_2]:
+##                            meta_id = ENS_to_metaPhor[ENS_id]
+##                            paralog = ENS_to_name[ENS_id]
+##                            species_meta_id = Homo_meta_id_to_others[meta_id][species]
+##                            species_TrEMBL_id = meta_to_TrEMBL[species_meta_id]
+##                            species_ENS_id = TrEMBL_to_Ensembl[species_TrEMBL_id]
+##
+##                            h.write('\t'.join([species, paralog, species_TrEMBL_id, species_meta_id, species_ENS_id, '\n']))
 
-                            h.write('\t'.join([species, paralog, species_TrEMBL_id, species_meta_id, species_ENS_id, '\n']))
+
+
 ##                    with open(GeneFamily_Folder + paralog1 + '_' + paralog2 + '.fasta', 'w+') as g:
 ##                        for species in ['Homo sapiens', 'Pan troglodytes', 'Pongo abelii', 'Macaca mulatta', 'Gorilla gorilla']:
 ##                            g.write('>' + species.split()[0] + '_' + paralog1 + '\n')
