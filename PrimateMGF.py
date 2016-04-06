@@ -127,7 +127,9 @@ if __name__ == '__main__':
 ######################################################################################
 #  Now try to see if other species all have only 2 paralogs by metaPhors database
 ######################################################################################
-
+    
+    m = dbClient.metaphors()
+    
     metaphor_id_file = 'ftp://phylomedb.org/metaphors/release-201601/id_conversion.txt.gz'
     ENS_to_metaPhor_file = './ENS_to_metaPhor.txt'
     ENS_to_metaPhor = dict()
