@@ -1,4 +1,8 @@
-import urllib2, gzip, os, json, pickle
+import urllib2, gzip, os, json, pickle, sys
+
+sys.path.insert(0, '../metaphors_api/')
+import dbClient
+
 from Bio import SeqIO
 
 #### http://rest.ensembl.org/documentation/info/sequence_id
