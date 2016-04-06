@@ -176,10 +176,13 @@ if __name__ == '__main__':
     selected_metaPhor_id = []
     target_species_list  = [9544L, 9593L, 9598L, 9601L, 9606L]
     for meta_id in metaPhor_to_ENS:
-        print 'Query metaPhors id: ', meta_id
+        #print 'Query metaPhors id: ', meta_id
         gene_name = ENS_to_name[metaPhor_to_ENS[meta_id]]
         protid = m.get_metaid(gene_name)
+        if not protid:
+            protid = m.get_metaid(metaPhor_to_ENS[meta_id])
         if protid:
+            #print 'Found its meta_id! '
             orthologs = m.get_orthologs(protid)
             if all([species in orthologs for species in target_species_list]):
                 selected_metaPhor_id.append(meta_id)
@@ -191,6 +194,8 @@ if __name__ == '__main__':
     #######
 
     selected_group_id_list = [group_id for group_id in group_id_to_ENS if all([(ENS_to_metaPhor[ENS] in selected_metaPhor_id) if ENS in ENS_to_metaPhor.keys() else False for ENS in group_id_to_ENS[group_id] ])]
+    for group_id in selected_group_id_list:
+        print group_id
 
 ######################################################################################
 #  Now get meta_id of other species and then link back to ENS id
