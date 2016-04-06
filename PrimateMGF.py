@@ -149,27 +149,42 @@ if __name__ == '__main__':
 
     metaPhor_to_ENS = {ENS_to_metaPhor[ENS]:ENS for ENS in ENS_to_metaPhor}
     
+##    #######
+##    # Now use HTML parser to search for species
+##    #######
+##    selected_metaPhor_id = []
+##    if not os.path.isfile('./selected_metaPhor_id.txt'):
+##        target_species_list = [u'Homo sapiens', u'Pan troglodytes', u'Gorilla gorilla', u'Pongo abelii', u'Macaca mulatta']
+##        for meta_id in metaPhor_to_ENS:
+##            print 'Query metaPhors id: ', meta_id
+##            website_query = "http://betaorthology.phylomedb.org/wsgi/query/getGenes?term=" + ENS_to_name[metaPhor_to_ENS[meta_id]]
+##            ### This method does not work for all genes, but some of them
+##            handle = urllib2.urlopen(website_query)
+##            species_to_metaid = json.loads(handle.readline())
+##            species_list = [i[u'species'] for i in species_to_metaid]
+##            #print species_list
+##            if all([target_species in species_list for target_species in target_species_list]):
+##                print "It is proved!"
+##                selected_metaPhor_id.append(meta_id)
+##    else:
+##        with open('./selected_metaPhor_id.txt', 'rb') as f:
+##            for line in f:
+##                selected_metaPhor_id.append(line.split()[0])
     #######
-    # Now use HTML parser to search for species
+    # Now use metaphors API to search for orthologs in species
     #######
     selected_metaPhor_id = []
-    if not os.path.isfile('./selected_metaPhor_id.txt'):
-        target_species_list = [u'Homo sapiens', u'Pan troglodytes', u'Gorilla gorilla', u'Pongo abelii', u'Macaca mulatta']
-        for meta_id in metaPhor_to_ENS:
-            print 'Query metaPhors id: ', meta_id
-            website_query = "http://betaorthology.phylomedb.org/wsgi/query/getGenes?term=" + ENS_to_name[metaPhor_to_ENS[meta_id]]
-            ### This method does not work for all genes, but some of them
-            handle = urllib2.urlopen(website_query)
-            species_to_metaid = json.loads(handle.readline())
-            species_list = [i[u'species'] for i in species_to_metaid]
-            #print species_list
-            if all([target_species in species_list for target_species in target_species_list]):
-                print "It is proved!"
+    target_species_list  = [9544L, 9593L, 9598L, 9601L, 9606L]
+    for meta_id in metaPhor_to_ENS:
+        print 'Query metaPhors id: ', meta_id
+        gene_name = ENS_to_name[metaPhor_to_ENS[meta_id]]
+        protid = m.get_metaid(gene_name)
+        if protid:
+            orthologs = m.get_orthologs(protid)
+            if all([species in orthologs for species in target_species_list]):
                 selected_metaPhor_id.append(meta_id)
-    else:
-        with open('./selected_metaPhor_id.txt', 'rb') as f:
-            for line in f:
-                selected_metaPhor_id.append(line.split()[0])
+
+
     
     #######
     # Now make intersection between selected meta_id and group_id
