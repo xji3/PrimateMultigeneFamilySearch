@@ -1,7 +1,7 @@
 import urllib2, gzip, os, json, pickle, sys
 
-sys.path.insert(0, '../metaphors_api/')
-import dbClient
+#sys.path.insert(0, '../metaphors_api/')
+#import dbClient
 
 from Bio import SeqIO
 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 ######################################################################################
 #  Use OrthoMAM v.9 ortholog mapping to map to other species
 ######################################################################################
-    OrthoMaMv9_align_folder = './OrthoMaMv9_align/'
+    OrthoMaMv9_align_folder = './OrthoMaMv9_with_outgroup_align/'
     all_files = os.listdir(OrthoMaMv9_align_folder)
     all_ENS = [file_name.split('_')[0] for file_name in all_files]
     ENS_to_FastaFile = {file_name.split('_')[0]:file_name for file_name in all_files}
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 #  Output a list of less accurate gene families first
 ######################################################################################
     GeneFamily_Folder = './GeneFamilies/'
-    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo']
+    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo', 'Callithrix']
     with open('./GeneFamilyList_LessAccurate.txt', 'w+') as f:
         for group_id in group_id_to_ENS:
             ENS_1, ENS_2 = group_id_to_ENS[group_id]
@@ -94,7 +94,7 @@ if __name__ == '__main__':
             f.write(paralog1 + '_' + paralog2 + '\n')
             with open(GeneFamily_Folder + paralog1 + '_' + paralog2 + '.fasta', 'w+') as g:
                 #f.write(paralog1 + '_' + paralog2 + '\n')
-                with open('./OrthoMaMv9_align/' + ENS_to_FastaFile[ENS_1], 'rb') as fasta_file:
+                with open(OrthoMaMv9_align_folder + ENS_to_FastaFile[ENS_1], 'rb') as fasta_file:
                     species_to_fasta = dict()
                     to_write = False
                     for line in fasta_file:
@@ -109,7 +109,7 @@ if __name__ == '__main__':
                     g.write(species_to_fasta[species] + '\n')
 
             
-                with open('./OrthoMaMv9_align/' + ENS_to_FastaFile[ENS_2], 'rb') as fasta_file:
+                with open(OrthoMaMv9_align_folder + ENS_to_FastaFile[ENS_2], 'rb') as fasta_file:
                     species_to_fasta = dict()
                     to_write = False
                     for line in fasta_file:
@@ -127,8 +127,6 @@ if __name__ == '__main__':
 ######################################################################################
 #  Now try to see if other species all have only 2 paralogs by metaPhors database
 ######################################################################################
-    
-    m = dbClient.metaphors()
     
     metaphor_id_file = 'ftp://phylomedb.org/metaphors/release-201601/id_conversion.txt.gz'
     ENS_to_metaPhor_file = './ENS_to_metaPhor.txt'
@@ -149,43 +147,46 @@ if __name__ == '__main__':
 
     metaPhor_to_ENS = {ENS_to_metaPhor[ENS]:ENS for ENS in ENS_to_metaPhor}
     
-##    #######
-##    # Now use HTML parser to search for species
-##    #######
-##    selected_metaPhor_id = []
-##    if not os.path.isfile('./selected_metaPhor_id.txt'):
-##        target_species_list = [u'Homo sapiens', u'Pan troglodytes', u'Gorilla gorilla', u'Pongo abelii', u'Macaca mulatta']
-##        for meta_id in metaPhor_to_ENS:
-##            print 'Query metaPhors id: ', meta_id
-##            website_query = "http://betaorthology.phylomedb.org/wsgi/query/getGenes?term=" + ENS_to_name[metaPhor_to_ENS[meta_id]]
-##            ### This method does not work for all genes, but some of them
-##            handle = urllib2.urlopen(website_query)
-##            species_to_metaid = json.loads(handle.readline())
-##            species_list = [i[u'species'] for i in species_to_metaid]
-##            #print species_list
-##            if all([target_species in species_list for target_species in target_species_list]):
-##                print "It is proved!"
-##                selected_metaPhor_id.append(meta_id)
-##    else:
-##        with open('./selected_metaPhor_id.txt', 'rb') as f:
-##            for line in f:
-##                selected_metaPhor_id.append(line.split()[0])
     #######
-    # Now use metaphors API to search for orthologs in species
+    # Now use HTML parser to search for species
     #######
     selected_metaPhor_id = []
-    target_species_list  = [9544L, 9593L, 9598L, 9601L, 9606L]
-    for meta_id in metaPhor_to_ENS:
-        #print 'Query metaPhors id: ', meta_id
-        gene_name = ENS_to_name[metaPhor_to_ENS[meta_id]]
-        protid = m.get_metaid(gene_name)
-        if not protid:
-            protid = m.get_metaid(metaPhor_to_ENS[meta_id])
-        if protid:
-            #print 'Found its meta_id! '
-            orthologs = m.get_orthologs(protid)
-            if all([species in orthologs for species in target_species_list]):
+    if not os.path.isfile('./selected_metaPhor_id.txt'):
+        target_species_list = [u'Homo sapiens', u'Pan troglodytes', u'Gorilla gorilla', u'Pongo abelii', u'Macaca mulatta', u'Callithrix jacchus']
+        for meta_id in metaPhor_to_ENS:
+            print 'Query metaPhors id: ', meta_id
+            website_query = "http://betaorthology.phylomedb.org/wsgi/query/getGenes?term=" + ENS_to_name[metaPhor_to_ENS[meta_id]]
+            ### This method does not work for all genes, but some of them
+            handle = urllib2.urlopen(website_query)
+            species_to_metaid = json.loads(handle.readline())
+            species_list = [i[u'species'] for i in species_to_metaid]
+            #print species_list
+            if all([target_species in species_list for target_species in target_species_list]):
+                print "It is proved!"
                 selected_metaPhor_id.append(meta_id)
+    else:
+        with open('./selected_metaPhor_id.txt', 'rb') as f:
+            for line in f:
+                selected_metaPhor_id.append(line.split()[0])
+
+##    #######
+##    # Now use metaphors API to search for orthologs in species
+##    #######
+##    m = dbClient.metaphors()
+##    
+##    selected_metaPhor_id = []
+##    target_species_list  = [9544L, 9593L, 9598L, 9601L, 9606L]
+##    for meta_id in metaPhor_to_ENS:
+##        #print 'Query metaPhors id: ', meta_id
+##        gene_name = ENS_to_name[metaPhor_to_ENS[meta_id]]
+##        protid = m.get_metaid(gene_name)
+##        if not protid:
+##            protid = m.get_metaid(metaPhor_to_ENS[meta_id])
+##        if protid:
+##            #print 'Found its meta_id! '
+##            orthologs = m.get_orthologs(protid)
+##            if all([species in orthologs for species in target_species_list]):
+##                selected_metaPhor_id.append(meta_id)
 
 
     
@@ -252,7 +253,7 @@ if __name__ == '__main__':
     
     # Use gene name for file names and Gene family names
     GeneFamily_Folder = './GeneFamilies/'
-    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo']
+    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo', 'Callithrix']
     with open('./GeneFamilyList.txt', 'w+') as f:    
         for group_id in selected_group_id_list:
             print group_id
@@ -268,7 +269,7 @@ if __name__ == '__main__':
             if ENS_1 in ENS_to_FastaFile and ENS_2 in ENS_to_FastaFile:
                 with open(GeneFamily_Folder + paralog1 + '_' + paralog2 + '.fasta', 'w+') as g:
                     #f.write(paralog1 + '_' + paralog2 + '\n')
-                    with open('./OrthoMaMv9_align/' + ENS_to_FastaFile[ENS_1], 'rb') as fasta_file:
+                    with open(OrthoMaMv9_align_folder + ENS_to_FastaFile[ENS_1], 'rb') as fasta_file:
                         species_to_fasta = dict()
                         to_write = False
                         for line in fasta_file:
@@ -283,7 +284,7 @@ if __name__ == '__main__':
                         g.write(species_to_fasta[species] + '\n')
 
                 
-                    with open('./OrthoMaMv9_align/' + ENS_to_FastaFile[ENS_2], 'rb') as fasta_file:
+                    with open(OrthoMaMv9_align_folder + ENS_to_FastaFile[ENS_2], 'rb') as fasta_file:
                         species_to_fasta = dict()
                         to_write = False
                         for line in fasta_file:
