@@ -69,7 +69,7 @@ if __name__ == '__main__':
 ######################################################################################
 #  Use OrthoMAM v.9 ortholog mapping to map to other species
 ######################################################################################
-    OrthoMaMv9_align_folder = './OrthoMaMv9_with_outgroup_align/'
+    OrthoMaMv9_align_folder = './OrthoMaMv9_align/'
     all_files = os.listdir(OrthoMaMv9_align_folder)
     all_ENS = [file_name.split('_')[0] for file_name in all_files]
     ENS_to_FastaFile = {file_name.split('_')[0]:file_name for file_name in all_files}
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 #  Output a list of less accurate gene families first
 ######################################################################################
     GeneFamily_Folder = './GeneFamilies/'
-    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo', 'Callithrix']
+    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo']#, 'Callithrix']
     with open('./GeneFamilyList_LessAccurate.txt', 'w+') as f:
         for group_id in group_id_to_ENS:
             ENS_1, ENS_2 = group_id_to_ENS[group_id]
@@ -123,6 +123,11 @@ if __name__ == '__main__':
                     g.write('>' + species + '_' + paralog2 + '\n')
                     g.write(species_to_fasta[species] + '\n')
 
+    with open('./GeneFamilyList_LessAccurate_ENS_id.txt', 'w+') as f:
+        for group_id in group_id_to_ENS:
+            ENS_1, ENS_2 = group_id_to_ENS[group_id]
+            f.write(ENS_1 + '_' + ENS_2 + '\n')
+
 
 ######################################################################################
 #  Now try to see if other species all have only 2 paralogs by metaPhors database
@@ -137,7 +142,7 @@ if __name__ == '__main__':
             for line in f:
                 content = line.split()
                 if content[0] in TrEMBL_to_ENS:
-                    print content[0]
+                    #print content[0]
                     ENS_to_metaPhor[TrEMBL_to_ENS[content[0]]] = content[2]
     else:
         with open(ENS_to_metaPhor_file, 'rb') as f:
@@ -152,7 +157,7 @@ if __name__ == '__main__':
     #######
     selected_metaPhor_id = []
     if not os.path.isfile('./selected_metaPhor_id.txt'):
-        target_species_list = [u'Homo sapiens', u'Pan troglodytes', u'Gorilla gorilla', u'Pongo abelii', u'Macaca mulatta', u'Callithrix jacchus']
+        target_species_list = [u'Homo sapiens', u'Pan troglodytes', u'Gorilla gorilla', u'Pongo abelii', u'Macaca mulatta']#, u'Callithrix jacchus']
         for meta_id in metaPhor_to_ENS:
             print 'Query metaPhors id: ', meta_id
             website_query = "http://betaorthology.phylomedb.org/wsgi/query/getGenes?term=" + ENS_to_name[metaPhor_to_ENS[meta_id]]
@@ -195,8 +200,8 @@ if __name__ == '__main__':
     #######
 
     selected_group_id_list = [group_id for group_id in group_id_to_ENS if all([(ENS_to_metaPhor[ENS] in selected_metaPhor_id) if ENS in ENS_to_metaPhor.keys() else False for ENS in group_id_to_ENS[group_id] ])]
-    for group_id in selected_group_id_list:
-        print group_id
+##    for group_id in selected_group_id_list:
+##        print group_id
 
 ######################################################################################
 #  Now get meta_id of other species and then link back to ENS id
@@ -253,10 +258,10 @@ if __name__ == '__main__':
     
     # Use gene name for file names and Gene family names
     GeneFamily_Folder = './GeneFamilies/'
-    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo', 'Callithrix']
+    ENS_fasta_species_list = ['Pongo', 'Macaca', 'Gorilla', 'Pan', 'Homo']#, 'Callithrix']
     with open('./GeneFamilyList.txt', 'w+') as f:    
         for group_id in selected_group_id_list:
-            print group_id
+            #print group_id
             ENS_1 = group_id_to_ENS[group_id][0]
             ENS_2 = group_id_to_ENS[group_id][1]
             paralog1 = ENS_to_name[ENS_1]
