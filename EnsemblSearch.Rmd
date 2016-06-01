@@ -1,0 +1,16 @@
+---
+title: "EnsemblSearch"
+author: "Xiang Ji"
+date: "June 1, 2016"
+output: html_document
+---
+
+```{r}
+rm(list=ls())  # clean up workspace
+human.paralog <- read.csv('/Users/xji3/Downloads/Ensembl84_Human_Paralogs.txt')
+# show columns
+colnames(human.paralog)
+
+# now see the quality of paralog mapping
+table(human.paralog[, "Human.paralogy.confidence..0.low..1.high."])
+```
