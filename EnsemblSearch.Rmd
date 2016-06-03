@@ -7,7 +7,7 @@ output: html_document
 
 ```{r}
 rm(list=ls())  # clean up workspace
-human.paralog <- read.csv('/Users/xji3/Downloads/Ensembl84_Human_Paralogs.txt')
+human.paralog <- read.csv('~/Downloads/Ensembl84_Human_Paralogs.txt')
 # show columns
 colnames(human.paralog)
 
