@@ -1,0 +1,24 @@
+#!/bin/bash
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000101327_ENSG00000181195_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000180917_ENSG00000137200_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000148358_ENSG00000125734_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000111530_ENSG00000144712_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000175352_ENSG00000053702_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000066583_ENSG00000063241_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000139926_ENSG00000153303_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000131059_ENSG00000198183_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000112619_ENSG00000149489_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000136404_ENSG00000213996_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000143942_ENSG00000128965_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000106299_ENSG00000015285_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000137507_ENSG00000174004_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000183035_ENSG00000155833_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000205593_ENSG00000174839_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000118017_ENSG00000128274_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000100221_ENSG00000161677_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000154478_ENSG00000155269_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000161835_ENSG00000115165_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000109775_ENSG00000176125_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000183571_ENSG00000130517_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000125355_ENSG00000184497_MG94_nonclock.sh 
+sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/ENSG00000112183_ENSG00000132819_MG94_nonclock.sh 

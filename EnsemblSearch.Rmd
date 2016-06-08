@@ -1,5 +1,5 @@
 ---
-title: "EnsemblSearch"
+title: "EnsemblSearensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")h"
 author: "Xiang Ji"
 date: "June 1, 2016"
 output: html_document
@@ -13,4 +13,57 @@ colnames(human.paralog)
 
 # now see the quality of paralog mapping
 table(human.paralog[, "Human.paralogy.confidence..0.low..1.high."])
+```
+
+##### 06/06/2016
+
+Use Biomart to achieve all human genes in the segmental duplication region
+
+```{r}
+library(biomaRt)
+# TO install
+# source("https://bioconductor.org/biocLite.R")
+# biocLite("biomaRt")
+sg.dup.data <- read.table("~/Downloads/genomicSuperDups", header = TRUE, 
+                          stringsAsFactors = FALSE)
+
+mart <- useMart("ensembl")
+datasets <- listDatasets(mart)
+mart <- useDataset("hsapiens_gene_ensembl",mart)
+listFilters(mart)
+listEnsembl()
+# Now construct a list of ensembl ids that are located within segmental duplication regions
+sg.gene.id.list <- "~/GitFolders/PrimateMultigeneFamilySearch/Segmental_Dup_Gene_ids.txt"
+if (file.exists(sg.gene.id.list)){
+  sg.gene.ensembl.ids <- read.table(sg.gene.id.list)
+}else{
+  sg.gene.ensembl.ids <- NULL
+  for (row.num in 1:dim(sg.dup.data)[1]){
+    dup1_genes <- 
+      getBM(attributes=c('ensembl_gene_id','chromosome_name','start_position','end_position'), 
+            filters = c('chromosome_name', "start", "end"), 
+            values = list(substring(sg.dup.data[row.num, "chrom"], 4), 
+                          sg.dup.data[row.num, "chromStart"], 
+                          sg.dup.data[row.num, "chromEnd"]), mart = mart)
+    
+    dup2_genes <- 
+      getBM(attributes=c('ensembl_gene_id','chromosome_name','start_position','end_position'), 
+            filters = c('chromosome_name', "start", "end"), 
+            values = list(substring(sg.dup.data[row.num, "otherChrom"], 4), 
+                          sg.dup.data[row.num, "otherStart"], 
+                          sg.dup.data[row.num, "otherEnd"]), mart = mart)
+    
+    if ( dim(dup1_genes)[1] != 0 & dim(dup2_genes)[1] != 0){
+      sg.gene.ensembl.ids <- unique(c(sg.gene.ensembl.ids, dup1_genes[, 1], dup2_genes[, 2]))
+    }
+    if (row.num %% 1000 == 0){
+      print(paste(toString(round(row.num / dim(sg.dup.data)[1]  * 100, 2)), "%", sep = ""))
+    }
+  }
+  write.table(sg.gene.ensembl.ids[substr(sg.gene.ensembl.ids, 1, 4) == "ENSG"], 
+              sg.gene.id.list, sep = "/n", 
+              row.names = FALSE, col.names = FALSE)
+}
+
+
 ```
