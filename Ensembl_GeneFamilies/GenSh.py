@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
 
         sh_line = 'sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/Force_'
-        IGC_bash_file = './Force_' + model + '_Primate_IGC.sh'
+        IGC_bash_file = './Force_' + case + '_' + model + '_Primate_IGC.sh'
         
         with open(IGC_bash_file, 'w+') as f:
             f.write('#!/bin/bash' + '\n')
