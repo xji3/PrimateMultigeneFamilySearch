@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
         model = 'MG94'
 
-        sh_line = 'sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/'
+        sh_line = 'sbatch -o ./OutFolder/Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/'
         IGC_bash_file = './' + case + '_' + model + '_Primate_IGC.sh'
         
         with open(IGC_bash_file, 'w+') as f:
@@ -30,8 +30,8 @@ if __name__ == '__main__':
                                 + ' --aln_folder ' + case + '/ ' + '\n')
 
 
-        sh_line = 'sbatch -o Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/Force_'
-        IGC_bash_file = './Force_' + case + '_' + model + '_Primate_IGC.sh'
+        sh_line = 'sbatch -o ./OutFolder/Primate-%j.out --mail-type=FAIL --mail-user=xji3@ncsu.edu ./ShFiles/Force_'
+        IGC_bash_file = './Force_' + model + '_Primate_IGC.sh'
         
         with open(IGC_bash_file, 'w+') as f:
             f.write('#!/bin/bash' + '\n')

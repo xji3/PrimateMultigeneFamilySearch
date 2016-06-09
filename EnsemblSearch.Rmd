@@ -7,12 +7,12 @@ output: html_document
 
 ```{r}
 rm(list=ls())  # clean up workspace
-human.paralog <- read.csv('~/Downloads/Ensembl84_Human_Paralogs.txt')
+#human.paralog <- read.csv('~/Downloads/Ensembl84_Human_Paralogs.txt')
 # show columns
-colnames(human.paralog)
+#colnames(human.paralog)
 
 # now see the quality of paralog mapping
-table(human.paralog[, "Human.paralogy.confidence..0.low..1.high."])
+#table(human.paralog[, "Human.paralogy.confidence..0.low..1.high."])
 ```
 
 ##### 06/06/2016
@@ -65,5 +65,69 @@ if (file.exists(sg.gene.id.list)){
               row.names = FALSE, col.names = FALSE)
 }
 
+```
+
+##### 06/09/2016
+
+Summarize results in three lists
+
+```{r}
+summary.path <- '~/GitFolders/PrimateMultigeneFamilySearch/Ensembl_GeneFamilies/Summary/'
+Post.Lemur.list <- '~/GitFolders/PrimateMultigeneFamilySearch/Ensembl_GeneFamilies/Post_Lemur/Post_Lemur_List.txt'
+Post.Tarsier.list <- '~/GitFolders/PrimateMultigeneFamilySearch/Ensembl_GeneFamilies/Post_Tarsier/Post_Tarsier_List.txt'
+Post.NWM.list <- '~/GitFolders/PrimateMultigeneFamilySearch/Ensembl_GeneFamilies/Post_NWM/Post_NWM_List.txt'
+
+Post.Lemur.Pairs <- read.table(Post.Lemur.list, stringsAsFactors = FALSE)[, 1]
+Post.Tarsier.Pairs <- read.table(Post.Tarsier.list, stringsAsFactors = FALSE)[, 1]
+Post.NWM.Pairs <- read.table(Post.NWM.list, stringsAsFactors = FALSE)[, 1]
+
+#Post.Lemur.Pairs <- Post.Lemur.Pairs[Post.Lemur.Pairs != "ENSG00000197520_ENSG00000151327"
+#                                     & Post.Lemur.Pairs != "ENSG00000117480_ENSG00000165591"]
+
+read.summary <- function(pairs, summary.path, model = "MG94", force = FALSE, clock = FALSE){
+  
+  if(force){
+    force.str = "Force_"
+  }else{
+    force.str = ""
+  }
+  if(clock){
+    clock.str = "clock"
+  }
+  else{
+    clock.str = "nonclock"
+  }
+  summary_mat <- NULL
+  for (paralog in pairs){
+    summary_file <- paste(summary.path, force.str, model, '_', paralog, "_", clock.str, "_summary.txt", sep = "")
+    if (file.exists(summary_file)){
+      all <- readLines(summary_file, n = -1)
+      col.names <- paralog
+      row.names <- strsplit(all[length(all)], ' ')[[1]][-1]
+      new.col   <- as.matrix(read.table(summary_file, row.names = row.names, col.names = col.names))
+      if (dim(new.col)[1] == 99){
+        summary_mat <- cbind(summary_mat, new.col)
+      }
+    }
+  }
+  return(summary_mat)
+}
+```
+
+Now read in each case
+```{r}
+# Post.Lemur
+Post.Lemur.Summary <- read.summary(Post.Lemur.Pairs, summary.path, "MG94", force = FALSE, clock = FALSE)
+Force.Post.Lemur.Summary <- read.summary(Post.Lemur.Pairs, summary.path, "MG94", force = TRUE, clock = FALSE)
+finished.lemur.pairs <- intersect(colnames(Post.Lemur.Summary), colnames(Force.Post.Lemur.Summary))
+Post.Lemur.Summary["ll", finished.lemur.pairs] - Force.Post.Lemur.Summary["ll", finished.lemur.pairs]
+hist(Post.Lemur.Summary["ll", finished.lemur.pairs] - Force.Post.Lemur.Summary["ll", finished.lemur.pairs])
+
+# Post.Tarsier
+Post.Tarsier.Summary <- read.summary(Post.Tarsier.Pairs, summary.path, "MG94", force = FALSE, clock = FALSE)
+Force.Post.Tarsier.Summary <- read.summary(Post.Tarsier.Pairs, summary.path, "MG94", force = TRUE, clock = FALSE)
+finished.Tarsier.pairs <- intersect(colnames(Post.Tarsier.Summary), colnames(Force.Post.Tarsier.Summary))
+Post.Tarsier.Summary["ll", finished.Tarsier.pairs] - Force.Post.Tarsier.Summary["ll", finished.Tarsier.pairs]
+hist(Post.Tarsier.Summary["ll", finished.Tarsier.pairs] - Force.Post.Tarsier.Summary["ll", finished.Tarsier.pairs])
 
 ```
