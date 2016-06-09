@@ -349,7 +349,7 @@ if __name__ == '__main__':
     # same_ortholog = [family for family in Post_Tarsier_families if sum([ortholog_mapping[i]['Tarsier'] != '' and ortholog_mapping[i]['Bushbaby'] != '' for i in family])]
     # All post_Tarsier families have the same paralog present in outgroups
 
-    #outputFamilies(Post_Lemur_families, Post_Lemur_folder, ortholog_mapping, outgroup_species_list, two_paralog_species_list)    
+    outputFamilies(Post_Lemur_families, Post_Lemur_folder, ortholog_mapping, outgroup_species_list, two_paralog_species_list)    
 
 
     # Post Tarier
@@ -359,7 +359,7 @@ if __name__ == '__main__':
     # same_ortholog = [family for family in Post_Tarsier_families if sum([ortholog_mapping[i]['Tarsier'] != '' and ortholog_mapping[i]['Bushbaby'] != '' for i in family])]
     # All post_Tarsier families have the same paralog present in outgroups
 
-    #outputFamilies(Post_Tarsier_families, Post_Tarsier_folder, ortholog_mapping, outgroup_species_list, two_paralog_species_list)    
+    outputFamilies(Post_Tarsier_families, Post_Tarsier_folder, ortholog_mapping, outgroup_species_list, two_paralog_species_list)    
 
 
     # Post NWM

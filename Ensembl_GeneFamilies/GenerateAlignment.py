@@ -50,7 +50,11 @@ def translateAAAlignmentDNAAlignment(AA_alignment, DNA_fasta, output_fasta):
                         elif line[i] == 'X':
                             new_line += '---'
                         else:
-                            new_line += dna_seq[(3 * (i - gap)):(3 * (i - gap) + 3)]
+                            codon = dna_seq[(3 * (i - gap)):(3 * (i - gap) + 3)]
+                            if 'N' in codon:
+                                new_line += '---'
+                            else:
+                                new_line += codon
                     g.write(new_line + '\n')
 
 def processAlignment(input_file):
