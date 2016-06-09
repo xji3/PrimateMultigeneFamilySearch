@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "Run.py", line 35, in <module>
+    main(parser.parse_args())
+  File "Run.py", line 16, in main
+    test = ReCodonGeneconv( newicktree, alignment_file, paralog, Model = args.model, Force = Force, clock = args.clock, post_dup = args.post_dup)
+TypeError: __init__() got an unexpected keyword argument 'post_dup'
