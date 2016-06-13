@@ -1,5 +1,5 @@
 ---
-title: "EnsemblSearensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")h"
+title: "EnsemblSearensembl"
 author: "Xiang Ji"
 date: "June 1, 2016"
 output: html_document
@@ -30,12 +30,12 @@ sg.dup.data <- read.table("~/Downloads/genomicSuperDups", header = TRUE,
 mart <- useMart("ensembl")
 datasets <- listDatasets(mart)
 mart <- useDataset("hsapiens_gene_ensembl",mart)
-listFilters(mart)
-listEnsembl()
+#listFilters(mart)
+#listEnsembl()
 # Now construct a list of ensembl ids that are located within segmental duplication regions
 sg.gene.id.list <- "~/GitFolders/PrimateMultigeneFamilySearch/Segmental_Dup_Gene_ids.txt"
 if (file.exists(sg.gene.id.list)){
-  sg.gene.ensembl.ids <- read.table(sg.gene.id.list)
+  sg.gene.ensembl.ids <- read.table(sg.gene.id.list, stringsAsFactors = FALSE)[, 1]
 }else{
   sg.gene.ensembl.ids <- NULL
   for (row.num in 1:dim(sg.dup.data)[1]){
@@ -119,15 +119,103 @@ Now read in each case
 # Post.Lemur
 Post.Lemur.Summary <- read.summary(Post.Lemur.Pairs, summary.path, "MG94", force = FALSE, clock = FALSE)
 Force.Post.Lemur.Summary <- read.summary(Post.Lemur.Pairs, summary.path, "MG94", force = TRUE, clock = FALSE)
-finished.lemur.pairs <- intersect(colnames(Post.Lemur.Summary), colnames(Force.Post.Lemur.Summary))
-Post.Lemur.Summary["ll", finished.lemur.pairs] - Force.Post.Lemur.Summary["ll", finished.lemur.pairs]
-hist(Post.Lemur.Summary["ll", finished.lemur.pairs] - Force.Post.Lemur.Summary["ll", finished.lemur.pairs])
+finished.Lemur.pairs <- intersect(colnames(Post.Lemur.Summary), colnames(Force.Post.Lemur.Summary))
+Post.Lemur.Summary["ll", finished.Lemur.pairs] - Force.Post.Lemur.Summary["ll", finished.Lemur.pairs]
+hist(Post.Lemur.Summary["ll", finished.Lemur.pairs] - Force.Post.Lemur.Summary["ll", finished.Lemur.pairs], 
+     main = "Post Lemur lnL increase")
 
 # Post.Tarsier
 Post.Tarsier.Summary <- read.summary(Post.Tarsier.Pairs, summary.path, "MG94", force = FALSE, clock = FALSE)
 Force.Post.Tarsier.Summary <- read.summary(Post.Tarsier.Pairs, summary.path, "MG94", force = TRUE, clock = FALSE)
 finished.Tarsier.pairs <- intersect(colnames(Post.Tarsier.Summary), colnames(Force.Post.Tarsier.Summary))
 Post.Tarsier.Summary["ll", finished.Tarsier.pairs] - Force.Post.Tarsier.Summary["ll", finished.Tarsier.pairs]
-hist(Post.Tarsier.Summary["ll", finished.Tarsier.pairs] - Force.Post.Tarsier.Summary["ll", finished.Tarsier.pairs])
+hist(Post.Tarsier.Summary["ll", finished.Tarsier.pairs] - Force.Post.Tarsier.Summary["ll", finished.Tarsier.pairs],
+     main = "Post Tarsier lnL increase")
+
+```
+
+#### Now show detailed results of significant pairs
+
+```{r}
+sig.post.lemur.pairs <- colnames(Post.Lemur.Summary[, finished.Lemur.pairs])[Post.Lemur.Summary["ll", finished.Lemur.pairs] - Force.Post.Lemur.Summary["ll", finished.Lemur.pairs] > 3.84]
+sig.post.tarsier.pairs <- colnames(Post.Tarsier.Summary[, finished.Tarsier.pairs])[Post.Tarsier.Summary["ll", finished.Tarsier.pairs] - Force.Post.Tarsier.Summary["ll", finished.Tarsier.pairs] > 3.84]
+# post.lemur pairs
+num.branch.lemur <- (dim(Post.Lemur.Summary)[1] - 9) / 5
+sig.summary.lemur <- cbind(Post.Lemur.Summary["tau", sig.post.lemur.pairs],
+                           Post.Lemur.Summary["ll", sig.post.lemur.pairs] - Force.Post.Lemur.Summary["ll", sig.post.lemur.pairs],
+                           (colSums(Post.Lemur.Summary[(dim(Post.Lemur.Summary)[1] - 3 * num.branch.lemur + 1) : (dim(Post.Lemur.Summary)[1] - num.branch.lemur), sig.post.lemur.pairs]) / 
+                              colSums(Post.Lemur.Summary[(dim(Post.Lemur.Summary)[1] - num.branch.lemur + 1) : dim(Post.Lemur.Summary)[1], sig.post.lemur.pairs]))) 
+sig.summary.lemur.colnames <- c("tau", "lnL increase", "%IGC")
+colnames(sig.summary.lemur) <- sig.summary.lemur.colnames
+
+# post.tarsier pairs
+num.branch.tarsier <- (dim(Post.Tarsier.Summary)[1] - 9) / 5
+if (length(sig.post.tarsier.pairs) > 1){
+  sig.summary.tarsier <- cbind(Post.Tarsier.Summary["tau", sig.post.tarsier.pairs],
+                               Post.Tarsier.Summary["ll", sig.post.tarsier.pairs] - Force.Post.Tarsier.Summary["ll", sig.post.tarsier.pairs],
+                               (colSums(Post.Tarsier.Summary[(dim(Post.Tarsier.Summary)[1] - 3 * num.branch.tarsier + 1) : (dim(Post.Tarsier.Summary)[1] - num.branch.tarsier), sig.post.tarsier.pairs]) / 
+                                  colSums(Post.Tarsier.Summary[(dim(Post.Tarsier.Summary)[1] - num.branch.tarsier + 1) : dim(Post.Tarsier.Summary)[1], sig.post.tarsier.pairs])))
+  sig.summary.tarsier.colnames <- c("tau", "lnL increase", "%IGC")
+  colnames(sig.summary.tarsier) <- sig.summary.tarsier.colnames
+}else{
+  sig.summary.tarsier <- c(Post.Tarsier.Summary["tau", sig.post.tarsier.pairs],
+                           Post.Tarsier.Summary["ll", sig.post.tarsier.pairs] - Force.Post.Tarsier.Summary["ll", sig.post.tarsier.pairs],
+                           (sum(Post.Tarsier.Summary[(dim(Post.Tarsier.Summary)[1] - 3 * num.branch.tarsier + 1) : (dim(Post.Tarsier.Summary)[1] - num.branch.tarsier), sig.post.tarsier.pairs]) / 
+                              sum(Post.Tarsier.Summary[(dim(Post.Tarsier.Summary)[1] - num.branch.tarsier + 1) : dim(Post.Tarsier.Summary)[1], sig.post.tarsier.pairs])))
+}
+
+```
+
+#### Now show more details about these pairs
+
+```{r}
+ensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+sig.post.lemur.info <- getBM(attributes=c('ensembl_gene_id', 'hgnc_symbol','chromosome_name','start_position','end_position'), 
+      filters ='ensembl_gene_id', values =unlist(strsplit(sig.post.lemur.pairs, split = "_")), mart = ensembl)
+sig.post.tarsier.info <- getBM(attributes=c('ensembl_gene_id', 'hgnc_symbol','chromosome_name','start_position','end_position'), 
+      filters ='ensembl_gene_id', values =unlist(strsplit(sig.post.tarsier.pairs, split = "_")), mart = ensembl)
+
+# post.lemur
+sig.post.lemur.add.col <- NULL
+sig.post.lemur.add.col.names <- c(#"In seg dup", 
+  "pr1 name", "pr1 chrm", "pr1 start:end", "pr2 name", "pr2 chrm", "pr2 start:end")
+for ( pair.iter in 1:length(sig.post.lemur.pairs)){
+  pair <- unlist(strsplit(rownames(sig.summary.lemur)[pair.iter], "_"))
+  paralog1.num <- which(sig.post.lemur.info[, 1] == pair[1])
+  paralog2.num <- which(sig.post.lemur.info[, 1] == pair[2])
+  sig.post.lemur.add.col <- rbind(sig.post.lemur.add.col,
+                                  c(#pair[1] %in% sg.gene.id.list | pair[2] %in% sg.gene.id.list,
+                                    sig.post.lemur.info[paralog1.num, "hgnc_symbol"], sig.post.lemur.info[paralog1.num, "chromosome_name"], 
+                                    paste(sig.post.lemur.info[paralog1.num, "start_position"], sig.post.lemur.info[paralog1.num, "end_position"], sep = ":"),
+                                    sig.post.lemur.info[paralog2.num, "hgnc_symbol"], sig.post.lemur.info[paralog2.num, "chromosome_name"], 
+                                    paste(sig.post.lemur.info[paralog2.num, "start_position"], sig.post.lemur.info[paralog2.num, "end_position"], sep = ":")
+                                    ))
+}
+colnames(sig.post.lemur.add.col) <- sig.post.lemur.add.col.names
+rownames(sig.post.lemur.add.col) <- rownames(sig.summary.lemur)
+sig.summary.lemur <- cbind(sig.summary.lemur, sig.post.lemur.add.col)
+print(sig.summary.lemur)
+
+# post.tarsier
+sig.post.tarsier.add.col <- NULL
+sig.post.tarsier.add.col.names <- c(#"In seg dup", 
+  "pr1 name", "pr1 chrm", "pr1 start:end", "pr2 name", "pr2 chrm", "pr2 start:end")
+for ( pair.iter in 1:length(sig.post.tarsier.pairs)){
+  pair <- unlist(strsplit(sig.post.tarsier.pairs[pair.iter], "_"))
+  paralog1.num <- which(sig.post.tarsier.info[, 1] == pair[1])
+  paralog2.num <- which(sig.post.tarsier.info[, 1] == pair[2])
+  sig.post.tarsier.add.col <- rbind(sig.post.tarsier.add.col,
+                                  c(#pair[1] %in% sg.gene.id.list | pair[2] %in% sg.gene.id.list,
+                                    sig.post.tarsier.info[paralog1.num, "hgnc_symbol"], sig.post.tarsier.info[paralog1.num, "chromosome_name"], 
+                                    paste(sig.post.tarsier.info[paralog1.num, "start_position"], sig.post.tarsier.info[paralog1.num, "end_position"], sep = ":"),
+                                    sig.post.tarsier.info[paralog2.num, "hgnc_symbol"], sig.post.tarsier.info[paralog2.num, "chromosome_name"], 
+                                    paste(sig.post.tarsier.info[paralog2.num, "start_position"], sig.post.tarsier.info[paralog2.num, "end_position"], sep = ":")
+                                    ))
+}
+colnames(sig.post.tarsier.add.col) <- sig.post.tarsier.add.col.names
+rownames(sig.post.tarsier.add.col) <- rownames(sig.summary.tarsier)
+sig.summary.tarsier <- c(sig.summary.tarsier, sig.post.tarsier.add.col)
+print(sig.summary.tarsier)
+
 
 ```
