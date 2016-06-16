@@ -1,0 +1,86 @@
+---
+title: "SegGenePairSearch"
+author: "Xiang Ji"
+date: "June 15, 2016"
+output: html_document
+---
+
+```{r}
+rm(list=ls())  # clean up workspace
+library(biomaRt)
+# TO install
+# source("https://bioconductor.org/biocLite.R")
+# biocLite("biomaRt")
+sg.dup.data <- read.table("~/Downloads/genomicSuperDups", header = TRUE, 
+                          stringsAsFactors = FALSE)
+
+mart <- useMart("ensembl")
+datasets <- listDatasets(mart)
+mart <- useDataset("hsapiens_gene_ensembl",mart)
+all.filters <- listFilters(mart)
+for(filter.num in 1:dim(all.filters)[1]){
+  if(grepl("Ortholog", all.filters[filter.num, 2]) | grepl("ortholog", all.filters[filter.num, 2])
+     | grepl("Paralog", all.filters[filter.num, 2]) | grepl("paralog", all.filters[filter.num, 2])){
+    print(paste(toString(filter.num), all.filters[filter.num, 1], all.filters[filter.num, 2]))
+  }
+}
+all.attributes <- listAttributes(mart)
+for(filter.num in 1:dim(all.attributes)[1]){
+  if(grepl("Ortholog", all.attributes[filter.num, 2]) | grepl("ortholog", all.attributes[filter.num, 2])
+     | grepl("Paralog", all.attributes[filter.num, 2]) | grepl("paralog", all.attributes[filter.num, 2])){
+    print(paste(toString(filter.num), all.attributes[filter.num, 1], all.attributes[filter.num, 2]))
+  }
+}
+#listEnsembl()
+# Now construct a list of ensembl ids that are located within segmental duplication regions
+search.flanking <- 1E3
+sg.gene.pair.list <- "~/GitFolders/PrimateMultigeneFamilySearch/Seg_Dup_Gene_Pairs.txt"
+if (file.exists(sg.gene.pair.list)){
+  sg.gene.pairs <- read.table(sg.gene.pair.list, stringsAsFactors = FALSE)[, 1]
+}else{
+  sg.gene.pairs <- NULL
+  for (row.num in 1:dim(sg.dup.data)[1]){
+    dup1_genes <- 
+      getBM(attributes=c('ensembl_gene_id','chromosome_name','start_position','end_position', 
+                         "hsapiens_paralog_ensembl_gene", "hsapiens_paralog_associated_gene_name", 
+                         "hsapiens_paralog_chromosome", "hsapiens_paralog_chrom_start", "hsapiens_paralog_chrom_end"), 
+            filters = c('chromosome_name', "start", "end"), 
+            values = list(substring(sg.dup.data[row.num, "chrom"], 4), 
+                          sg.dup.data[row.num, "chromStart"] - search.flanking, 
+                          sg.dup.data[row.num, "chromEnd"] + search.flanking), mart = mart)
+    if (dim(dup1_genes)[1] > 0){
+      for (gene.num in 1:dim(dup1_genes)[1]){
+        ensembl.id <- dup1_genes[gene.num, "ensembl_gene_id"]
+        paralog.gene.id <- dup1_genes[gene.num, "hsapiens_paralog_ensembl_gene"]
+        paralog.gene.chrm <- dup1_genes[gene.num, "hsapiens_paralog_chromosome"]
+        paralog.gene.start <- dup1_genes[gene.num, "hsapiens_paralog_chrom_start"]
+        paralog.gene.end <- dup1_genes[gene.num, "hsapiens_paralog_chrom_end"]
+        if (paralog.gene.id != "" & ! is.na(paralog.gene.id)){
+          if( paralog.gene.chrm == substring(sg.dup.data[row.num, "otherChrom"], 4) & 
+              paralog.gene.start > sg.dup.data[row.num, "otherStart"] - search.flanking &
+              paralog.gene.end < sg.dup.data[row.num, "otherEnd"] + search.flanking){
+            
+            if(as.numeric(substring(ensembl.id, 5)) < as.numeric(substring(paralog.gene.id, 5))){
+              gene.pair <- paste(ensembl.id, paralog.gene.id, sep = "_")
+            }else{
+              gene.pair <- paste(paralog.gene.id, ensembl.id, sep = "_")
+            }
+            sg.gene.pairs <- sort(unique(c(sg.gene.pairs, gene.pair)))
+            
+          }
+        }
+      }
+    }
+    if (row.num %% 1000 == 0){
+      print(paste(toString(round(row.num / dim(sg.dup.data)[1]  * 100, 2)), "%", sep = ""))
+    }
+  }
+  write.table(sg.gene.pairs, 
+              sg.gene.pair.list, sep = "/n", 
+              row.names = FALSE, col.names = FALSE)
+}
+
+
+
+```
+
