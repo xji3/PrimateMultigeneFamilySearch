@@ -4,7 +4,11 @@ import argparse
 def main(args):
     paralog = [args.paralog1, args.paralog2]
     Force = None
-    alignment_file = './' + args.aln_folder + '_'.join(paralog) + '/' + '_'.join(paralog) + '_input.fasta'
+    if args.aln_folder[:4] == 'Post':
+        inner_path = './withOutgroup/'
+    else:
+        inner_path = './noOutgroup/'
+    alignment_file = inner_path + args.aln_folder + '_'.join(paralog) + '/' + '_'.join(paralog) + '_input.fasta'
     newicktree = './' + args.aln_folder[:-1] + '_Primate_Tree.newick'
     if args.force:
         if args.model == 'MG94':
